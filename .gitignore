@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.DS_Store
+
+
+.ruff_cache/
+
+# Virtual environments
+.venv
+
+# Environment
+.env
+
+# Output directories (keep directory structure but ignore contents)
+crash_dumps/*
+!crash_dumps/.gitkeep
+chroma_db_demo_crash/*
+!chroma_db_demo_crash/.gitkeep
+chroma_db_pool_test/*
+!chroma_db_pool_test/.gitkeep

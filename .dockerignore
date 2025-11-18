@@ -1,0 +1,19 @@
+docs/
+*.md
+scripts/ # mounted via volumes
+original-issue/
+crash_dumps/
+chroma_db_demo_crash/
+chroma_db/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+.env # mounted via volumes
+.env.* # mounted via volumes
+.vscode/
+.idea/
+*.swp
+*.swo
+.ruff_cache/

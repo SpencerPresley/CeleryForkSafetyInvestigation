@@ -1,0 +1,143 @@
+# Unified Docker Compose for Celery Fork-Safety Testing
+#
+# Usage:
+#   docker compose up redis                              # Start Redis (for Celery tests)
+#   docker compose run --rm celery-test-all             # Run all Celery pool tests
+#   docker compose run --rm celery-test-prefork         # Run specific pool test
+#   docker compose run --rm demo-crash                  # Run crash demo
+#   docker compose run --rm demo-gdb                    # Run crash demo with GDB
+#   docker compose run --rm shell                       # Interactive shell
+#   docker compose run --rm clean                       # Clean output directories
+
+services:
+  # Redis service for Celery
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 1s
+      retries: 5
+
+  # Base service configuration (anchor for reuse)
+  base: &base
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./crash_dumps:/app/crash_dumps
+      - ./chroma_db_demo_crash:/app/chroma_db_demo_crash
+      - ./chroma_db_pool_test:/app/chroma_db_pool_test
+      - ./scripts:/app/scripts:ro
+      # Don't mount celery_examples - use the code copied in Dockerfile
+      # Mounting it causes issues with module imports in worker subprocesses
+      - ./.env:/app/.env:ro
+    environment:
+      - PROVIDER=${PROVIDER}
+      - API_KEY=${API_KEY}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ulimits:
+      core: -1
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+  
+  # ============================================================================
+  # CELERY TESTING SERVICES
+  # ============================================================================
+  
+  # Celery base (extends base, adds working directory)
+  celery-base: &celery-base
+    <<: *base
+    depends_on:
+      redis:
+        condition: service_healthy
+    working_dir: /app/celery_examples
+  
+  celery-test-all:
+    <<: *celery-base
+    command: ["python", "run_test.py", "--all"]
+  
+  celery-test-prefork:
+    <<: *celery-base
+    command: ["python", "run_test.py", "--pool", "prefork"]
+  
+  celery-test-gevent:
+    <<: *celery-base
+    command: ["python", "run_test.py", "--pool", "gevent"]
+  
+  celery-test-eventlet:
+    <<: *celery-base
+    command: ["python", "run_test.py", "--pool", "eventlet"]
+  
+  celery-test-threads:
+    <<: *celery-base
+    command: ["python", "run_test.py", "--pool", "threads"]
+  
+  # ============================================================================
+  # DEMO CRASH SERVICES
+  # ============================================================================
+  
+  demo-crash:
+    <<: *base
+    command: >
+      bash -c "
+      echo '=== Running demo_crash.py ===' &&
+      python scripts/demo_crash.py 2>&1 | tee crash_dumps/crash_normal_$$(date +%s).log
+      "
+  
+  demo-gdb:
+    <<: *base
+    privileged: true
+    command: >
+      bash -c "
+      echo '=== Running demo_crash.py with GDB ===' &&
+      python scripts/gdb_attach_child.py 2>&1 | tee crash_dumps/crash_gdb_$$(date +%s).log
+      "
+  
+  demo-strace:
+    <<: *base
+    command: >
+      bash -c "
+      echo '=== Running demo_crash.py with strace ===' &&
+      strace -o crash_dumps/crash_strace_$$(date +%s).trace -f \
+        python scripts/demo_crash.py 2>&1 | tee crash_dumps/crash_strace_$$(date +%s).log
+      "
+  
+  
+  # ============================================================================
+  # UTILITY SERVICES
+  # ============================================================================
+
+  check-env:
+    <<: *base
+    command: >
+      sh -c "
+      echo '=== Checking environment variables ===' &&
+      test -n \"$$PROVIDER\" || (echo 'ERROR: PROVIDER not set' && exit 1) &&
+      test \"$$PROVIDER\" = 'openai' -o \"$$PROVIDER\" = 'google' || (echo 'ERROR: PROVIDER must be openai or google' && exit 1) &&
+      test -n \"$$API_KEY\" || (echo 'ERROR: API_KEY not set' && exit 1) &&
+      test -n \"$$EMBEDDING_MODEL\" || (echo 'ERROR: EMBEDDING_MODEL not set' && exit 1) &&
+      echo 'All environment variables are set correctly!'
+      "
+
+  shell:
+    <<: *celery-base
+    command: ["bash"]
+    stdin_open: true
+    tty: true
+  
+  clean:
+    <<: *base
+    command: >
+      bash -c "
+      echo 'Cleaning output directories...' &&
+      rm -rf crash_dumps/* chroma_db_demo_crash/* chroma_db_pool_test/* &&
+      echo 'Done!'
+      "
+

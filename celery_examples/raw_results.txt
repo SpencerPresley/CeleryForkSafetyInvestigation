@@ -1,0 +1,83 @@
+================================================================================
+RUNNING A/B TEST: ALL POOL TYPES
+================================================================================
+
+================================================================================
+TESTING POOL TYPE: PREFORK
+================================================================================
+[INFO] Found Redis on port 6379
+[MODULE IMPORT] tasks_pool_test.py imported in PID 99427
+[INFO] Starting worker with pool=prefork, concurrency=2
+[INFO] Command: celery -A tasks_pool_test worker --pool prefork --concurrency 2 --loglevel info --logfile worker_prefork.log
+[INFO] Waiting for worker to be ready (timeout=10s)...
+[INFO] Worker should be ready now
+[INFO] Sending task to worker...
+[INFO] Task ID: 0f05634f-6732-43f2-8b21-00b4d4f2cff0
+[INFO] Waiting for result (timeout=30s)...
+[ERROR] Task failed or timed out: Worker exited prematurely: signal 5 (SIGTRAP) Job: 0.
+[ERROR] Task state: FAILURE
+
+[RESULT] PREFORK: FAILED (task timed out or crashed)
+[INFO] Stopping worker...
+
+================================================================================
+TESTING POOL TYPE: GEVENT
+================================================================================
+[INFO] Found Redis on port 6379
+[INFO] Starting worker with pool=gevent, concurrency=2
+[INFO] Command: celery -A tasks_pool_test worker --pool gevent --concurrency 2 --loglevel info --logfile worker_gevent.log
+[INFO] Waiting for worker to be ready (timeout=10s)...
+[INFO] Worker should be ready now
+[INFO] Sending task to worker...
+[INFO] Task ID: d6eca58a-8b81-4f8b-aded-d57925e14fa8
+[INFO] Waiting for result (timeout=30s)...
+[INFO] Task completed: {'status': 'success', 'pid': 99479, 'parent_pid': 99427, 'documents_inserted': 2, 'pattern': 'module_level_initialization', 'message': 'Task completed successfully - pool avoided fork-safety issue'}
+
+[RESULT] GEVENT: PASSED
+[RESULT] Message: Task completed successfully - pool avoided fork-safety issue
+[INFO] Stopping worker...
+[WARNING] Worker didn't stop gracefully, killing...
+
+================================================================================
+TESTING POOL TYPE: EVENTLET
+================================================================================
+[INFO] Found Redis on port 6379
+[INFO] Starting worker with pool=eventlet, concurrency=2
+[INFO] Command: celery -A tasks_pool_test worker --pool eventlet --concurrency 2 --loglevel info --logfile worker_eventlet.log
+[INFO] Waiting for worker to be ready (timeout=10s)...
+[INFO] Worker should be ready now
+[INFO] Sending task to worker...
+[INFO] Task ID: eab32804-13e8-4304-8bec-6b636a5d8611
+[INFO] Waiting for result (timeout=30s)...
+[INFO] Task completed: {'status': 'success', 'pid': 99529, 'parent_pid': 99427, 'documents_inserted': 2, 'pattern': 'module_level_initialization', 'message': 'Task completed successfully - pool avoided fork-safety issue'}
+
+[RESULT] EVENTLET: PASSED
+[RESULT] Message: Task completed successfully - pool avoided fork-safety issue
+[INFO] Stopping worker...
+
+================================================================================
+TESTING POOL TYPE: THREADS
+================================================================================
+[INFO] Found Redis on port 6379
+[INFO] Starting worker with pool=threads, concurrency=2
+[INFO] Command: celery -A tasks_pool_test worker --pool threads --concurrency 2 --loglevel info --logfile worker_threads.log
+[INFO] Waiting for worker to be ready (timeout=10s)...
+[INFO] Worker should be ready now
+[INFO] Sending task to worker...
+[INFO] Task ID: 27789a70-82d1-4ca8-ad9b-17c945d1f506
+[INFO] Waiting for result (timeout=30s)...
+[INFO] Task completed: {'status': 'success', 'pid': 99581, 'parent_pid': 99427, 'documents_inserted': 2, 'pattern': 'module_level_initialization', 'message': 'Task completed successfully - pool avoided fork-safety issue'}
+
+[RESULT] THREADS: PASSED
+[RESULT] Message: Task completed successfully - pool avoided fork-safety issue
+[INFO] Stopping worker...
+
+================================================================================
+TEST SUMMARY
+================================================================================
+prefork   : FAILED (Expected: FAIL (fork-safety issue))
+gevent    : PASSED (Expected: PASS (no fork))
+eventlet  : PASSED (Expected: PASS (no fork))
+threads   : PASSED (Expected: PASS (no fork))
+
+[SUCCESS] All tests match expectations!
