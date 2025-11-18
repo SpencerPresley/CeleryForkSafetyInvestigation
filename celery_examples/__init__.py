@@ -1,1 +1,1 @@
-"""Celery examples package.""" 
+"""Celery examples package."""
