@@ -4,7 +4,8 @@ This repository demonstrates a fork-safety issue that manifests when database co
 
 **Inspired by:** LangChain issue [#33246](https://github.com/langchain-ai/langchain/issues/33246) - "Document ingestion into VectorDB does not complete when running inside Celery task" by [@BennisonDevadoss](https://github.com/BennisonDevadoss)
 
->[!NOTE] **Disclaimer:**
+>[!NOTE] 
+>**Disclaimer:**
 >
 > I am not claiming to be an expert in any of the things mentioned in this repository, particularly the low level instructions and registers. I did my best to research the problem and cite sources as best I could.
 >
