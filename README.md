@@ -35,7 +35,7 @@ This repository demonstrates a fork-safety issue that manifests when database co
 ## Repository Structure
 
 ```
-celery_examples/          # Celery pool comparison tests
+celery_examples/         # Celery pool comparison tests
 ├── run_test.py          # Test runner
 └── tasks_pool_test.py   # Celery tasks (fork-unsafe pattern)
 
