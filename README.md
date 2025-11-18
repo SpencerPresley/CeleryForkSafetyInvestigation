@@ -43,10 +43,9 @@ scripts/                 # Demo crash scripts
 ├── demo_crash.py        # Demonstrates the bug
 ├── gdb_attach_child.py  # Linux debugger (Docker)
 └── lldb_attach_child.py # macOS debugger (native)
-
 docs/                    # Detailed analysis
 ├── LINUX_RESULTS.md     # GDB debugging output
-├── MACOS_RESULTS.md     # LLDB debugging output
+└── MACOS_RESULTS.md     # LLDB debugging output
 ```
 
 ## The Problem
